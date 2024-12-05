@@ -161,7 +161,14 @@ export default types
 
     queuePosition: types.optional(types.number, 0),
 
-    customButtons: types.array(CustomButton, []),
+    /**
+     * Project field used for applying classifications to comments
+     */
+    commentClassificationConfig: types.maybeNull(types.string),
+
+    customButtons: types.map(
+      types.union(types.string, CustomButton, types.array(types.union(types.string, CustomButton))),
+    ),
   })
   .preProcessSnapshot((sn) => {
     // This should only be handled if the sn.user value is an object, and converted to a reference id for other
@@ -177,6 +184,11 @@ export default types
           ? [currentUser, ...sn.users.filter(({ id }) => id !== currentUser.id)]
           : [currentUser];
       }
+    }
+    // fix for old version of custom buttons which were just an array
+    // @todo remove after a short time
+    if (Array.isArray(sn.customButtons)) {
+      sn.customButtons = { _replace: sn.customButtons };
     }
     return {
       ...sn,
@@ -343,6 +355,7 @@ export default types
           if (shouldDenyEmptyAnnotation && areResultsEmpty) return;
           if (annotationStore.viewingAll) return;
           if (isUpdateDisabled) return;
+          if (entity.isReadOnly()) return;
 
           entity?.submissionInProgress();
 
@@ -424,6 +437,11 @@ export default types
         if (c && !c.isLinkingMode) {
           c.hideSelectedRegions();
         }
+      });
+
+      hotkeys.addNamed("region:visibility-all", () => {
+        const { selected } = self.annotationStore;
+        selected.regionStore.toggleVisibility();
       });
 
       hotkeys.addNamed("annotation:undo", () => {
@@ -689,6 +707,7 @@ export default types
 
     function handleCustomButton(button) {
       if (self.isSubmitting) return;
+      const buttonName = button.name;
 
       handleSubmittingFlag(async () => {
         const entity = self.annotationStore.selected;
@@ -699,7 +718,7 @@ export default types
 
         const isDirty = entity.history.canUndo;
 
-        await getEnv(self).events.invoke("customButton", self, button, { isDirty, entity });
+        await getEnv(self).events.invoke("customButton", self, buttonName, { isDirty, entity, button });
         self.incrementQueuePosition();
         entity.dropDraft();
       }, `Error during handling ${button} button, try again`);
@@ -887,7 +906,7 @@ export default types
           self.annotationStore.selected.setSuggestions(dataParser(response));
           self.setFlags({ awaitingSuggestions: false });
         }
-      } catch (e) {
+      } catch (_e) {
         self.setFlags({ awaitingSuggestions: false });
         // @todo handle errors + situation when task is changed
       }
@@ -921,7 +940,7 @@ export default types
       }
     }
 
-    function prevTask(e, shouldGoBack = false) {
+    function prevTask(_e, shouldGoBack = false) {
       const length = shouldGoBack
         ? self.taskHistory.length - 1
         : self.taskHistory.findIndex((x) => x.taskId === self.task.id) - 1;

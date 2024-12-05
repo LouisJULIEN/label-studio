@@ -7,13 +7,13 @@ import { CommentItem } from "./CommentItem";
 
 export type CommentContextType = {
   startLinkingMode: (comment: any) => void;
-  isLinking: boolean;
+  globalLinking: boolean;
   currentComment: any;
 };
 
 export const CommentsContext = createContext<CommentContextType>({
   startLinkingMode: () => {},
-  isLinking: false,
+  globalLinking: false,
   currentComment: null,
 });
 
@@ -41,7 +41,12 @@ export const CommentsListInner: FC<{ commentStore: any }> = observer(({ commentS
   return (
     <Block name="comments-list">
       {commentStore.comments.map((comment: any) => (
-        <CommentItem key={comment.id} comment={comment} listComments={commentStore.listComments} />
+        <CommentItem
+          key={comment.id}
+          comment={comment}
+          listComments={commentStore.listComments}
+          classificationsItems={commentStore.commentClassificationsItems}
+        />
       ))}
     </Block>
   );

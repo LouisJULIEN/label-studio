@@ -1,6 +1,8 @@
-import { applySnapshot, getSnapshot, types } from "mobx-state-tree";
+import { applySnapshot, getSnapshot, type Instance, type SnapshotIn, types } from "mobx-state-tree";
 import { guidGenerator } from "../utils/unique";
 
+export type CustomButtonType = Instance<typeof CustomButton>;
+export type CustomButtonSnType = SnapshotIn<typeof CustomButton>;
 /**
  * Custom buttons that can be injected from outside application.
  * The only required property is `name`. If the `name` is one of the predefined buttons, it will be rendered as such.
@@ -10,7 +12,7 @@ export const CustomButton = types
   .model("CustomButton", {
     id: types.optional(types.identifier, guidGenerator),
     name: types.string,
-    title: types.maybe(types.string),
+    title: types.string,
     look: types.maybe(
       types.enumeration(["primary", "danger", "destructive", "alt", "outlined", "active", "disabled"] as const),
     ),
@@ -19,7 +21,7 @@ export const CustomButton = types
     disabled: types.maybe(types.boolean),
   })
   .actions((self) => ({
-    updateProps(newProps: Partial<typeof self>) {
-      applySnapshot(self, Object.assign({}, getSnapshot(self), newProps));
+    updateState(newState: CustomButtonSnType) {
+      applySnapshot(self, Object.assign({}, getSnapshot(self), newState));
     },
   }));

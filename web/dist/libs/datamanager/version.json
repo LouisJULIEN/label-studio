@@ -1,6 +1,6 @@
 {
-  "message": "chore(deps-dev): bump @sentry/browser from 6.19.7 to 8.33.0 in /web (#6462)",
-  "commit": "f26bba5f2aa64a4d3406cd02ece05ecfabb735b2",
-  "date": "2024-10-03T19:15:28.000Z",
+  "message": "feat: LEAP-1351: LSF customization for bulk annotation  (#6203)",
+  "commit": "970da3a995d6f8d31ef0c8d2fb8aede2ac4b34a7",
+  "date": "2024-12-04T11:00:56.000Z",
   "branch": "develop"
 }
